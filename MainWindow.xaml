@@ -14,7 +14,7 @@
                 <MenuItem Header="_Open" Command="{Binding OpenCommand}"/>
                 <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
                 <Separator/>
-                <MenuItem Header="_Run" Command="{Binding RunCommand}"/>
+                <MenuItem Header="_Run" Command="{Binding RunScriptCommand}"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
             </MenuItem>
@@ -28,6 +28,11 @@
             <StatusBarItem>Ready</StatusBarItem>
         </StatusBar>
         <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
                 <RowDefinition Height="5"/>
@@ -36,6 +41,8 @@
             </Grid.RowDefinitions>
 
             <avalonEdit:TextEditor 
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
                 Grid.Row="0"
                 Margin="2"
                 FontFamily="Consolas" 
@@ -43,9 +50,20 @@
                 FontSize="10pt" 
                 ShowLineNumbers="True"
                 Name="textEditor"/>
-            <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"/>
-            <TextBox Grid.Row="2" Text="{Binding StatusText}" IsReadOnly="True" Margin="2" />
-            <TextBox Grid.Row="3" Text="{Binding Command}" Margin="2"/>
+            <GridSplitter Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Stretch"/>
+            <TextBox 
+                Grid.Column="0" 
+                Grid.ColumnSpan="2" 
+                Grid.Row="2" 
+                Text="{Binding StatusText}" 
+                IsReadOnly="True" 
+                IsReadOnlyCaretVisible="True"
+                FontFamily="Consolas"
+                FontSize="10pt"
+                Margin="2" 
+                VerticalScrollBarVisibility="Visible" />
+            <TextBox Grid.Column="0" Grid.Row="3" Text="{Binding Command}" Margin="2" />
+            <Button Grid.Column="1" Grid.Row="3" Content="Execute" Width="50" Margin="2" Command="{Binding ExecuteCommand}"/>
         </Grid>
     </DockPanel>
 </Window>

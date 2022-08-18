@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using AudioScript.Data;
@@ -9,18 +10,30 @@ using MoonSharp.Interpreter;
 
 namespace AudioScript
 {
-    public class MainWindowViewModel
+    public class MainWindowViewModel : INotifyPropertyChanged
     {
+        private static MainWindowViewModel? m_instance = null;
+
+        private MainWindow m_window;
         private Script m_script;
         private Song? m_song;
         private ModeManager? m_modes;
+        private string m_command;
+        private string m_statusText = "";
 
         private static string[] m_scales = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 
-        public MainWindowViewModel()
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public static MainWindowViewModel? GetMainWindowViewModel() => m_instance;
+
+        public MainWindowViewModel(MainWindow window)
         {
+            m_instance = this;
+
             Logger.Info("Audio Script V2.0");
 
+            m_window = window;
             m_script = new Script();
 
             m_modes = ModeManager.Instance;
@@ -59,9 +72,14 @@ namespace AudioScript
 
             m_script.Globals["ShowMessage"] = (Func<string, int, int>)ShowMessage;
 
+            m_script.Options.DebugPrint = s => Print(s);
+
+            m_command = "";
+
             Startup();
         }
 
+        #region Startup
         private void Startup()
         {
             try
@@ -72,6 +90,13 @@ namespace AudioScript
             {
                 Logger.Error($"Error loading script: {e.Message}");
             }
+        }
+        #endregion
+
+        #region Lua Commands
+        private static void Print(string text)
+        {
+            Logger.Info(text);
         }
 
         private static void CreateInstruments(List<string> names)
@@ -252,14 +277,51 @@ namespace AudioScript
 
             return 0;
         }
+        #endregion
 
+        #region Fields
+        public string Command
+        {
+            get => m_command;
+            set { m_command = value; }
+        }
+
+        public string StatusText
+        {
+            get => m_statusText;
+            set 
+            {
+                m_statusText = value;
+                OnPropertyChanged(nameof(StatusText));
+            }
+        }
+        #endregion
+
+        #region Private Functions
+        private void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        #endregion
+
+        public void AddStatusText(string message)
+        {
+            if (string.IsNullOrEmpty(m_statusText))
+                m_statusText = message;
+            else
+                m_statusText = m_statusText + "\n" + message;
+    
+            OnPropertyChanged(nameof(StatusText));
+        }
+
+        #region Commands
         public ICommand NewCommand
         {
             get
             {
                 return new DelegateCommand((o) =>
                 {
-                    Song.Create("Untitled");
+                    m_window.textEditor.Document.Text = "";
                 });
             }
         }
@@ -272,14 +334,15 @@ namespace AudioScript
                 {
                     var dialog = new OpenFileDialog
                     {
-                        FileName = "AudioScript",
-                        DefaultExt = ".asc",
-                        Filter = "Audio Script projects (*.asc)|*.asc"
+                        Title = "Open Script",
+                        FileName = "script.lua",
+                        InitialDirectory = Helpers.Folders.GetScriptFolder(),
+                        DefaultExt = ".lua"
                     };
 
                     if (dialog.ShowDialog() == true)
                     {
-                        Song.Instance.Load(dialog.FileName);
+                        m_window.textEditor.Load(dialog.FileName);
                     }
                 });
             }
@@ -293,35 +356,15 @@ namespace AudioScript
                 {
                     var dialog = new SaveFileDialog
                     {
-                        FileName = "AudioScript.asc",
-                        DefaultExt = ".asc",
-                        Filter = "Audio Script projects (*.asc)|*.asc"
+                        Title = "Save Script",
+                        FileName = "script.lua",
+                        InitialDirectory = Helpers.Folders.GetScriptFolder(),
+                        DefaultExt = ".lua"
                     };
 
                     if (dialog.ShowDialog() == true)
                     {
-                        Song.Instance.Save(dialog.FileName);
-                    }
-                });
-            }
-        }
-
-        public ICommand ExportCommand
-        {
-            get
-            {
-                return new DelegateCommand((o) =>
-                {
-                    var dialog = new SaveFileDialog
-                    {
-                        FileName = "Export.mid",
-                        DefaultExt = ".mid",
-                        Filter = "MIDI files (*.mid)|*.mid"
-                    };
-
-                    if (dialog.ShowDialog() == true)
-                    {
-                        Song.Instance.Generate(dialog.FileName);
+                        m_window.textEditor.Save(dialog.FileName);
                     }
                 });
             }
@@ -344,22 +387,52 @@ namespace AudioScript
             {
                 return new DelegateCommand((o) =>
                 {
-                    var dialog = new OpenFileDialog
+                    var text = m_window.textEditor.Text;
+                    try
                     {
-                        FileName = "Script.lua",
-                        DefaultExt = ".lua",
-                        InitialDirectory = Helpers.Folders.GetScriptFolder(),
-                        Filter = "Scripts (*.lua)|*.lua"
-                    };
-
-                    if (dialog.ShowDialog() == true)
+                        m_script.DoString(text);
+                    }
+                    catch (InternalErrorException e)
                     {
-                        m_script.DoFile(dialog.FileName);
+                        MessageBox.Show($"Internal error: {e.Message}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    catch (SyntaxErrorException e)
+                    {
+                        MessageBox.Show($"Syntax error: {e.Message}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    catch (ScriptRuntimeException e)
+                    {
+                        MessageBox.Show($"Runtime error: {e.DecoratedMessage}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 });
             }
         }
 
-
+        public ICommand ExecuteCommand
+        {
+            get
+            {
+                return new DelegateCommand((o) =>
+                {
+                    try
+                    {
+                        m_script.DoString(m_command);
+                    }
+                    catch (InternalErrorException e)
+                    {
+                        MessageBox.Show($"Internal error: {e.Message}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    catch (SyntaxErrorException e)
+                    {
+                        MessageBox.Show($"Syntax error: {e.Message}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    catch (ScriptRuntimeException e)
+                    {
+                        MessageBox.Show($"Runtime error: {e.DecoratedMessage}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                });
+            }
+        }
+        #endregion
     }
 }
