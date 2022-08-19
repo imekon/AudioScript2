@@ -312,6 +312,12 @@ namespace AudioScript
                 m_statusText = m_statusText + "\n" + message;
     
             OnPropertyChanged(nameof(StatusText));
+
+            if (m_window != null)
+            {
+                // TODO: Make text visible... how?
+                //m_window.statusText...
+            }
         }
 
         #region Commands
