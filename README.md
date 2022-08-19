@@ -10,3 +10,4 @@ Uses:
 
 * MoonSharp (Lua in C#)
 * NAudio
+* AvalonEdit
