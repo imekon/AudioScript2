@@ -10,5 +10,16 @@ namespace AudioScript.Helpers
             char d = Convert.ToChar(digit + '1');
             return l.ToString() + d.ToString();
         }
+
+        public static (int letter, int digit) FromLetterDigit(string name)
+        {
+            char l = name[0];
+            char d = name[1];
+
+            int letter = l - 'A';
+            int digit = d - '1';
+
+            return (letter, digit);
+        }
     }
 }

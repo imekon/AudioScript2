@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
 using AudioScript.Data;
+using AudioScript.Helpers;
 using AudioScript.Logging;
 using Microsoft.Win32;
 using MoonSharp.Interpreter;
@@ -55,6 +57,7 @@ namespace AudioScript
             m_script.Globals["SetChord"] = (Action<int, int>)SetChord;
             m_script.Globals["CreateTrack"] = (Func<string, int, Track>)CreateTrack;
             m_script.Globals["CreatePattern"] = (Func<Track, int, int, int, Pattern>)CreatePattern;
+            m_script.Globals["CreatePatternNamed"] = (Func<Track, string, int, Pattern>)CreatePattern;
             m_script.Globals["SetPatternLength"] = (Action<Pattern, int>)SetPatternLength;
             m_script.Globals["CreateReference"] = (Func<Track, int, int, int, bool>)CreateReference;
             m_script.Globals["ClearReference"] = (Func<Track, int, bool>)ClearReference;
@@ -186,6 +189,16 @@ namespace AudioScript
         {
             Logger.Debug("Create pattern");
 
+            var pattern = new Pattern(letter, digit, length);
+            track.AddPattern(pattern);
+            return pattern;
+        }
+
+        private static Pattern CreatePattern(Track track, string name, int length = 1)
+        {
+            Logger.Debug("Create pattern");
+
+            (int letter, int digit) = PatternNaming.FromLetterDigit(name);
             var pattern = new Pattern(letter, digit, length);
             track.AddPattern(pattern);
             return pattern;
