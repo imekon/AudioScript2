@@ -45,6 +45,24 @@ namespace AudioScript.Data
             m_notes.Clear();
         }
 
+        public void GenerateNotes(IList<int> position, IList<int> notes, int length)
+        {
+            m_notes.Clear();
+            m_length = length;
+
+            for(int pos = 0; pos < length * 16; pos++)
+            {
+                var p = pos % 16;
+                if (position.Contains(p))
+                {
+                    var index = notes[pos % notes.Count];
+                    var start = pos * 24;
+                    var note = new Note(index, start, 24, 96);
+                    m_notes.Add(note);
+                }
+            }
+        }
+
         public void Generate(int scale, Mode mode, int channel, int bar, int chord, List<MidiNoteEvent> events)
         {
             foreach(var note in m_notes)

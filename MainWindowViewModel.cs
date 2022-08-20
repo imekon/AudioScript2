@@ -64,6 +64,7 @@ namespace AudioScript
             m_script.Globals["ClearAllReferences"] = (Func<Track, bool>)ClearAllReferences;
             m_script.Globals["CreateNote"] = (Func<Pattern, int, int, int, int, Note>)CreateNote;
             m_script.Globals["CreateNotes"] = (Func<Pattern, List<int>, int, int, List<Note>>)CreateNotes;
+            m_script.Globals["GenerateNotes"] = (Action<Pattern, List<int>, List<int>, int>)GenerateNotes;
             m_script.Globals["ClearAllNotes"] = (Func<Pattern, bool>)ClearAllNotes;
 
             m_script.Globals["FindScale"] = (Func<string, int>)FindScale;
@@ -260,6 +261,11 @@ namespace AudioScript
             }
 
             return notes;
+        }
+
+        private static void GenerateNotes(Pattern pattern, List<int> positions, List<int> notes, int length)
+        {
+            pattern.GenerateNotes(positions, notes, length);
         }
 
         private static bool ClearAllNotes(Pattern pattern)
