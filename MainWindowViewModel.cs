@@ -76,6 +76,7 @@ namespace AudioScript
             m_script.Globals["ShowMessage"] = (Func<string, int, int>)ShowMessage;
 
             m_script.Globals["SetLoggerLevel"] = (Action<int>)SetLoggerLevel;
+            m_script.Globals["GetLoggerLevel"] = (Func<int>)GetLoggerLevel;
 
             m_script.Options.DebugPrint = s => Print(s);
 
@@ -107,6 +108,11 @@ namespace AudioScript
         private static void SetLoggerLevel(int level)
         {
             Logger.SetLoggerLevel(level);
+        }
+
+        private static int GetLoggerLevel()
+        {
+            return Logger.GetLoggerLevel();
         }
 
         private static void CreateInstruments(List<string> names)
