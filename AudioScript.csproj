@@ -9,11 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Scripts\notes.lua" />
     <None Remove="Scripts\startup.lua" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="melody_mine.ico" />
+    <Content Include="Scripts\notes.lua">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Scripts\startup.lua">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
