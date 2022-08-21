@@ -199,7 +199,7 @@ namespace AudioScript.Data
 
         public override string ToString()
         {
-            return $"Song '{m_title}' tempo {m_tempo} ppqn {m_ppqn}";
+            return $"Song '{m_title}' copyright '{m_copyright}' tempo {m_tempo} ppqn {m_ppqn}";
         }
     }
 }

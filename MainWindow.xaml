@@ -10,13 +10,19 @@
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_New" Command="{Binding NewCommand}"/>
-                <MenuItem Header="_Open" Command="{Binding OpenCommand}"/>
-                <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
+                <MenuItem Header="_New" Command="{Binding NewScriptCommand}"/>
+                <MenuItem Header="_Open" Command="{Binding OpenScriptCommand}"/>
+                <MenuItem Header="_Save" Command="{Binding SaveScriptCommand}"/>
                 <Separator/>
                 <MenuItem Header="_Run" Command="{Binding RunScriptCommand}"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Song">
+                <MenuItem Header="_New" Command="{Binding NewSongCommand}"/>
+                <MenuItem Header="_Open..." Command="{Binding OpenSongCommand}"/>
+                <MenuItem Header="_Save..." Command="{Binding SaveSongCommand}"/>
+                <MenuItem Header="_Export..." Command="{Binding ExportSongCommand}"/>
             </MenuItem>
             <MenuItem Header="_Edit">
                 <MenuItem Header="_Cut" Command="{Binding CutCommand}"/>

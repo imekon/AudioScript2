@@ -4,13 +4,23 @@ namespace AudioScript.Logging
 {
     public static class Logger
     {
+        private static LoggerLevel m_level = LoggerLevel.Information;
+
+        public static void SetLoggerLevel(int level)
+        {
+            m_level = (LoggerLevel)level;
+        }
+
         public static void Debug(string message)
         {
             Trace.WriteLine(message);
 
-            var logger = MainWindowViewModel.GetMainWindowViewModel();
-            if (logger != null)
-                logger.AddStatusText(message);
+            if (m_level <= LoggerLevel.Debug)
+            {
+                var logger = MainWindowViewModel.GetMainWindowViewModel();
+                if (logger != null)
+                    logger.AddStatusText(message);
+            }
         }
 
         public static void Info(string message)

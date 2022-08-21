@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
 using AudioScript.Data;
@@ -18,8 +17,8 @@ namespace AudioScript
 
         private MainWindow m_window;
         private Script m_script;
-        private Song? m_song;
-        private ModeManager? m_modes;
+        private static Song? m_song;
+        private static ModeManager? m_modes;
         private string m_command;
         private string m_statusText = "";
 
@@ -76,6 +75,8 @@ namespace AudioScript
 
             m_script.Globals["ShowMessage"] = (Func<string, int, int>)ShowMessage;
 
+            m_script.Globals["SetLoggerLevel"] = (Action<int>)SetLoggerLevel;
+
             m_script.Options.DebugPrint = s => Print(s);
 
             m_command = "";
@@ -103,6 +104,11 @@ namespace AudioScript
             Logger.Info(text);
         }
 
+        private static void SetLoggerLevel(int level)
+        {
+            Logger.SetLoggerLevel(level);
+        }
+
         private static void CreateInstruments(List<string> names)
         {
             Logger.Debug("Create instruments");
@@ -111,32 +117,31 @@ namespace AudioScript
         private static Mode CreateMode(string name, List<int> notes)
         {
             Logger.Debug($"Create mode {name}");
-            var mode = ModeManager.Instance.AddMode(name, notes.ToArray());
+            var mode = m_modes!.AddMode(name, notes.ToArray());
             return mode;
         }
 
         private static Song CreateSong(string title, int ppqn = 96)
         {
             Logger.Debug($"Create song {title} ppqn {ppqn}");
-            var song = Song.Instance;
-            song.Title = title;
-            song.PPQN = ppqn;
-            return song;
+            m_song!.Title = title;
+            m_song.PPQN = ppqn;
+            return m_song;
         }
 
         private static Song GetSong()
         {
-            return Song.Instance;
+            return m_song!;
         }
 
         private static void SetTitle(string title)
         {
-            Song.Instance.Title = title;
+            m_song!.Title = title;
         }
 
         private static void SetCopyright(string copyright)
         {
-            Song.Instance.Copyright = copyright;
+            m_song!.Copyright = copyright;
         }
 
         //private static ChordProgression CreateChordProgression(int chord, int start, int duration)
@@ -149,25 +154,25 @@ namespace AudioScript
 
         private void SetChord(int bar, int chord)
         {
-            Song.Instance.SetChord(bar, chord);
+            m_song!.SetChord(bar, chord);
         }
 
         private static Track CreateTrack(string name, int channel)
         {
             Logger.Debug($"Create track {name}");
-            var track = Song.Instance.AddTrack(name, "default", channel);
+            var track = m_song!.AddTrack(name, "default", channel);
             return track;
         }
 
         private static Track FindTrack(string name)
         {
-            var track = Song.Instance.FindTrack(name);
+            var track = m_song!.FindTrack(name);
             return track!;
         }
 
         private static Mode FindMode(string name)
         {
-            var mode = ModeManager.Instance.FindMode(name);
+            var mode = m_modes!.FindMode(name);
             return mode!;
         }
 
@@ -340,7 +345,7 @@ namespace AudioScript
         }
 
         #region Commands
-        public ICommand NewCommand
+        public ICommand NewScriptCommand
         {
             get
             {
@@ -351,7 +356,7 @@ namespace AudioScript
             }
         }
 
-        public ICommand OpenCommand
+        public ICommand OpenScriptCommand
         {
             get
             {
@@ -373,7 +378,7 @@ namespace AudioScript
             }
         }
 
-        public ICommand SaveCommand
+        public ICommand SaveScriptCommand
         {
             get
             {
@@ -391,17 +396,6 @@ namespace AudioScript
                     {
                         m_window.textEditor.Save(dialog.FileName);
                     }
-                });
-            }
-        }
-
-        public ICommand ExitCommand
-        {
-            get
-            {
-                return new DelegateCommand((o) =>
-                {
-                    Application.Current.Shutdown();
                 });
             }
         }
@@ -428,6 +422,95 @@ namespace AudioScript
                     catch (ScriptRuntimeException e)
                     {
                         MessageBox.Show($"Runtime error: {e.DecoratedMessage}", "Audio Script", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                });
+            }
+        }
+
+        public ICommand ExitCommand
+        {
+            get
+            {
+                return new DelegateCommand((o) =>
+                {
+                    Application.Current.Shutdown();
+                });
+            }
+        }
+
+        public ICommand NewSongCommand
+        {
+            get
+            {
+                return new DelegateCommand((o) =>
+                {
+                    Song.Create("untitled");
+                    m_song = Song.Instance;
+                });
+            }
+        }
+
+        public ICommand OpenSongCommand
+        {
+            get
+            {
+                return new DelegateCommand((o) =>
+                {
+                    var dialog = new OpenFileDialog
+                    {
+                        FileName = "AudioScript.asc",
+                        DefaultExt = ".asc",
+                        Title = "Open Song",
+                        Filter = "Song files (*.asc)|*.asc"
+                    };
+
+                    if (dialog.ShowDialog() == true)
+                    {
+                        m_song!.Load(dialog.FileName);
+                    }
+                });
+            }
+        }
+
+        public ICommand SaveSongCommand
+        {
+            get
+            {
+                return new DelegateCommand((o) =>
+                {
+                    var dialog = new SaveFileDialog
+                    {
+                        FileName = "AudioScript.asc",
+                        DefaultExt = ".asc",
+                        Title = "Open Song",
+                        Filter = "Song files (*.asc)|*.asc"
+                    };
+
+                    if (dialog.ShowDialog() == true)
+                    {
+                        m_song!.Save(dialog.FileName);
+                    }
+                });
+            }
+        }
+
+        public ICommand ExportSongCommand
+        {
+            get
+            {
+                return new DelegateCommand((o) =>
+                {
+                    var dialog = new SaveFileDialog
+                    {
+                        FileName = "export.mid",
+                        DefaultExt = ".mid",
+                        Title = "Export Song to MIDI",
+                        Filter = "MIDI files (*.mid)|*.mid"
+                    };
+
+                    if (dialog.ShowDialog() == true)
+                    {
+                        m_song!.Generate(dialog.FileName);
                     }
                 });
             }
