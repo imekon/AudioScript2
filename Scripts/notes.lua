@@ -1,4 +1,7 @@
 ﻿function CreateRandom()
+	SetMode("dorian")
+	SetScale("D")
+
 	track = FindTrack("lead")
 	if track == nil then
 		ShowMessage('Cant find track', 0)

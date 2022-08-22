@@ -54,6 +54,8 @@ namespace AudioScript
             m_script.Globals["SetTitle"] = (Action<string>)SetTitle;
             m_script.Globals["SetCopyright"] = (Action<string>)SetCopyright;
             m_script.Globals["SetChord"] = (Action<int, int>)SetChord;
+            m_script.Globals["SetMode"] = (Func<string, bool>)SetMode;
+            m_script.Globals["SetScale"] = (Func<string, bool>)SetScale;
             m_script.Globals["CreateTrack"] = (Func<string, int, Track>)CreateTrack;
             m_script.Globals["CreatePattern"] = (Func<Track, int, int, int, Pattern>)CreatePattern;
             m_script.Globals["CreatePatternNamed"] = (Func<Track, string, int, Pattern>)CreatePattern;
@@ -148,6 +150,24 @@ namespace AudioScript
         private static void SetCopyright(string copyright)
         {
             m_song!.Copyright = copyright;
+        }
+
+        private static bool SetMode(string mode)
+        {
+            var m = m_modes!.FindMode(mode);
+            if (m == null)
+                return false;
+
+            m_song!.Mode = m;
+
+            return true;
+        }
+
+        private static bool SetScale(string scale)
+        {
+            var s = FindScale(scale);
+            m_song!.Scale = s;
+            return true;
         }
 
         //private static ChordProgression CreateChordProgression(int chord, int start, int duration)
