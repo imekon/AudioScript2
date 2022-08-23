@@ -17,9 +17,11 @@
 
 	ShowMessage("Number of notes "..#notes, 0)
 
+	offsets = { 0, 3, 1, 4, 2, 6, 5 }
+
 	index = 0
 	for i, note in ipairs(notes) do
-		note.NoteIndex = 42 + index % 6
+		note.NoteIndex = 42 + offsets[index % 7 + 1]
 		if index % 3 != 0 then
 			note.Velocity = 75
 		end
